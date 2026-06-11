@@ -1,5 +1,16 @@
+.env
+frontend/.env
+
 node_modules/
 build/
-.env
+
 __pycache__/
 *.pyc
+
+exports/
+*.jsonl
+
+*.xlsx
+*.xls
+
+.ipynb_checkpoints/

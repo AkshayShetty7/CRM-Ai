@@ -1,14 +1,3 @@
-"""
-server.py
-Thin FastAPI wrapper that exposes the CRMAgent backend as HTTP endpoints.
-All business logic lives in the sibling modules — this file only routes
-HTTP requests to the right agent method and serialises results.
-
-Run (from the backend/ folder):
-    pip install fastapi "uvicorn[standard]" python-multipart
-    uvicorn server:app --reload --port 8000
-"""
-
 import sys
 from pathlib import Path
 from tempfile import gettempdir
@@ -29,7 +18,7 @@ app = FastAPI(title="AI CRM Agent API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000","https://crm-ai-kappa.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
