@@ -4,7 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import styles from './CampaignPanel.module.css';
 
 export default function CampaignPanel() {
-  const { state, setCampaign, setCampaignSent } = useAppContext();
+
 
   const { state, setCampaign, setCampaignSent, removeCampaign } = useAppContext();
 
