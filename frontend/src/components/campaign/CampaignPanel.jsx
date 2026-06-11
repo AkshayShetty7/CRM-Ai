@@ -5,6 +5,9 @@ import styles from './CampaignPanel.module.css';
 
 export default function CampaignPanel() {
   const { state, setCampaign, setCampaignSent } = useAppContext();
+
+  const { state, setCampaign, setCampaignSent, removeCampaign } = useAppContext();
+
   const [context, setContext] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
