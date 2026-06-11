@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap');
+
+:root {
+  --white:       #ffffff;
+  --bg:          #f7f7f5;
+  --surface:     #ffffff;
+  --border:      #e8e8e4;
+  --border-dark: #d0d0c8;
+
+  --ink:         #111110;
+  --ink-2:       #3c3c38;
+  --ink-3:       #6e6e68;
+  --ink-4:       #a0a09a;
+
+  --accent:      #1a1a18;
+  --accent-soft: #f0f0ec;
+
+  --green:       #2d6a4f;
+  --green-bg:    #eaf4ef;
+  --red:         #c0392b;
+  --red-bg:      #fdf2f0;
+  --amber:       #9a6c00;
+  --amber-bg:    #fdf7e3;
+  --blue:        #1a4d8f;
+  --blue-bg:     #eef4fc;
+
+  --radius-sm:   4px;
+  --radius:      8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:      0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:   0 12px 32px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+
+  --font:        'DM Sans', -apple-system, sans-serif;
+  --font-mono:   'DM Mono', 'Fira Code', monospace;
+
+  --sidebar-w:   240px;
+  --header-h:    56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+}
+
+input, textarea, select, button {
+  font-family: var(--font);
+  font-size: 0.9rem;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+
+/* ── Utility ───────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}

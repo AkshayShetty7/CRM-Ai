@@ -1,0 +1,42 @@
+.wrap { border-top: 1px solid var(--border); }
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #1a1a18;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.copy {
+  background: none;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.copy:hover { border-color: #888; color: #fff; }
+
+.pre {
+  background: #111110;
+  color: #d0d0c0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 14px 16px;
+  overflow-x: auto;
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
