@@ -36,6 +36,9 @@ export const uploadFile = (file) => {
     .then((r) => r.data);
 };
 
+export const deleteDataset = () =>
+  api.delete('/api/dataset').then((r) => r.data);
+
 // ── Schema ─────────────────────────────────────────────────────────────────────
 export const getSchema = () => api.get('/api/schema').then((r) => r.data);
 

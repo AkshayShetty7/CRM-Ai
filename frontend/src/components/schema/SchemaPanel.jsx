@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSchema, uploadFile } from '../../services/api';
+import { getSchema, uploadFile,deleteDataset } from '../../services/api';
 import { useAppContext } from '../../context/AppContext';
 import styles from './SchemaPanel.module.css';
 
@@ -41,15 +41,46 @@ export default function SchemaPanel() {
   const handleUpload = async (file) => {
     setUploading(true);
     setError('');
+
     try {
+
       const s = await uploadFile(file);
+
       setSchema(s);
+
+      // Reset file input
+      if (fileRef.current) {
+        fileRef.current.value = '';
+      }
+
     } catch (err) {
+
       setError(err.message);
+
     } finally {
+
       setUploading(false);
     }
   };
+
+  const handleDelete = async () => {
+
+  try {
+
+    await deleteDataset();
+
+    setSchema(null);
+
+    // Reset file input
+    if (fileRef.current) {
+      fileRef.current.value = '';
+    }
+
+  } catch (err) {
+
+    setError(err.message);
+  }
+};
 
   return (
     <div className={styles.panel}>
@@ -59,9 +90,34 @@ export default function SchemaPanel() {
           <p className={styles.subtitle}>Inspect your loaded dataset's structure.</p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.outlineBtn} onClick={() => fileRef.current.click()} disabled={uploading}>
+          <button
+            className={styles.outlineBtn}
+            onClick={() => {
+
+              if (schema) {
+
+                setError(
+                  'Delete the existing dataset before uploading another.'
+                );
+
+                return;
+              }
+
+              fileRef.current.click();
+            }}
+            disabled={uploading}
+          >
             {uploading ? 'Uploading…' : '↑ Upload new file'}
           </button>
+
+          {schema && (
+          <button
+            className={styles.outlineBtn}
+            onClick={handleDelete}
+          >
+            Delete Dataset
+          </button>
+        )}
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }}
             onChange={(e) => e.target.files[0] && handleUpload(e.target.files[0])} />
           <button className={styles.outlineBtn} onClick={refresh} disabled={loading}>

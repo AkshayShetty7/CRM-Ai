@@ -46,10 +46,7 @@ export default function QueryPanel() {
     }
   };
 
-  const handleReset = async () => {
-    await resetConversation().catch(() => {});
-    setError('');
-  };
+  
 
   const handleExport = async (fmt) => {
     setExporting(true);
@@ -77,9 +74,7 @@ export default function QueryPanel() {
           <h2 className={styles.title}>Query</h2>
           <p className={styles.subtitle}>Ask questions about your data in plain English.</p>
         </div>
-        <button className={styles.resetBtn} onClick={handleReset} title="Reset conversation context">
-          <ResetIcon /> Reset context
-        </button>
+        
       </div>
 
       {/* Input */}
