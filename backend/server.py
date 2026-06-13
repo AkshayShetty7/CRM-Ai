@@ -210,24 +210,42 @@ def create_campaign(req: CampaignRequest):
 
 @app.get("/api/campaign/{campaign_id}/preview")
 def preview_campaign(campaign_id: str, recipient_index: int = 0):
-    agent    = _require_agent()
+    agent = _require_agent()
     campaign = _get_campaign(agent, campaign_id)
+
     try:
         preview = agent.preview_campaign(campaign, recipient_index)
-        email_col  = agent.db.schema.email_column if agent.db.schema else None
-        recipient  = (
-            campaign.recipients[recipient_index]
-            if recipient_index < len(campaign.recipients) else {}
+
+        email_col = (
+            agent.db.schema.email_column
+            if agent.db.schema else None
         )
+
+        name_col = (
+            agent.db.schema.name_column
+            if agent.db.schema else None
+        )
+
+        recipient = (
+            campaign.recipients[recipient_index]
+            if recipient_index < len(campaign.recipients)
+            else {}
+        )
+
         return {
-            "subject":           preview["subject"],
-            "body":              preview["body"],
-            "recipient_email":   recipient.get(email_col, "") if email_col else "",
-            "recipient_index":   recipient_index,
-            "total_recipients":  campaign.recipient_count,
+            "recipient_name": recipient.get(name_col, "") if name_col else "",
+            "subject": preview["subject"],
+            "body": preview["body"],
+            "recipient_email": recipient.get(email_col, "") if email_col else "",
+            "recipient_index": recipient_index,
+            "total_recipients": campaign.recipient_count,
         }
+
     except IndexError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc)
+        )
     
 
 @app.delete("/api/dataset")
@@ -251,6 +269,8 @@ def delete_dataset():
     return {
         "status": "deleted"
     }
+
+
     
 @app.delete("/api/campaign/{campaign_id}")
 def delete_campaign(campaign_id: str):

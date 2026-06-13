@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { createCampaign, previewCampaign, approveCampaign } from '../../services/api';
+import React, { useState, useEffect } from 'react';
+import { createCampaign, previewCampaign, approveCampaign, deleteCampaign } from '../../services/api';
 import { useAppContext } from '../../context/AppContext';
 import styles from './CampaignPanel.module.css';
 
@@ -87,9 +87,11 @@ export default function CampaignPanel() {
   );
 }
 
+
 function CampaignCard({ campaign, onSent }) {
   const [preview, setPreview] = useState(null);
-  const [previewIdx, setPreviewIdx] = useState(0);
+  const [selectedRecipient, setSelectedRecipient] = useState(0);
+  const [recipientList, setRecipientList] = useState([]);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState(campaign.sendResult || null);
@@ -97,13 +99,19 @@ function CampaignCard({ campaign, onSent }) {
   const [expanded, setExpanded] = useState(true);
   const [confirmed, setConfirmed] = useState(false);
 
+  const { removeCampaign } = useAppContext();
+
   const loadPreview = async (idx) => {
     setLoadingPreview(true);
-    setError('');
+
     try {
-      const p = await previewCampaign(campaign.campaign_id, idx);
+      const p = await previewCampaign(
+        campaign.campaign_id,
+        idx
+      );
+
       setPreview(p);
-      setPreviewIdx(idx);
+      setSelectedRecipient(idx);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -111,14 +119,55 @@ function CampaignCard({ campaign, onSent }) {
     }
   };
 
+  const loadRecipients = async () => {
+    const recipients = [];
+
+    for (let i = 0; i < campaign.recipient_count; i++) {
+      try {
+        const p = await previewCampaign(
+          campaign.campaign_id,
+          i
+        );
+
+        recipients.push({
+          index: i,
+          email: p.recipient_email,
+          name:
+            p.recipient_name ||
+            p.recipient_email.split('@')[0] ||
+            `Recipient ${i + 1}`,
+        });
+      } catch {}
+    }
+
+    setRecipientList(recipients);
+
+    if (recipients.length > 0) {
+      await loadPreview(0);
+    }
+  };
+
+  useEffect(() => {
+    loadRecipients();
+  }, []);
+
   const handleSend = async () => {
-    if (!confirmed) { setConfirmed(true); return; }
+    if (!confirmed) {
+      setConfirmed(true);
+      return;
+    }
+
     setSending(true);
-    setError('');
+
     try {
-      const result = await approveCampaign(campaign.campaign_id);
+      const result = await approveCampaign(
+        campaign.campaign_id
+      );
+
       setSendResult(result);
+
       onSent(result);
+
       setConfirmed(false);
     } catch (err) {
       setError(err.message);
@@ -128,93 +177,235 @@ function CampaignCard({ campaign, onSent }) {
   };
 
   const statusColors = {
-    pending_approval: { bg: 'var(--amber-bg)', color: 'var(--amber)' },
-    completed: { bg: 'var(--green-bg)', color: 'var(--green)' },
-    partial: { bg: 'var(--amber-bg)', color: 'var(--amber)' },
-    failed: { bg: 'var(--red-bg)', color: 'var(--red)' },
+    pending_approval: {
+      bg: 'var(--amber-bg)',
+      color: 'var(--amber)',
+    },
+    completed: {
+      bg: 'var(--green-bg)',
+      color: 'var(--green)',
+    },
+    partial: {
+      bg: 'var(--amber-bg)',
+      color: 'var(--amber)',
+    },
+    failed: {
+      bg: 'var(--red-bg)',
+      color: 'var(--red)',
+    },
   };
-  const sc = statusColors[campaign.status] || { bg: 'var(--accent-soft)', color: 'var(--ink-3)' };
+
+  const sc =
+    statusColors[campaign.status] || {
+      bg: 'var(--accent-soft)',
+      color: 'var(--ink-3)',
+    };
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardHeader} onClick={() => setExpanded((v) => !v)}>
+      <div
+        className={styles.cardHeader}
+        onClick={() => setExpanded((v) => !v)}
+      >
         <div className={styles.cardMeta}>
-          <span className={styles.campaignId}>#{campaign.campaign_id}</span>
-          <span className={styles.statusBadge} style={{ background: sc.bg, color: sc.color }}>
+          <span className={styles.campaignId}>
+            #{campaign.campaign_id}
+          </span>
+
+          <span
+            className={styles.statusBadge}
+            style={{
+              background: sc.bg,
+              color: sc.color,
+            }}
+          >
             {campaign.status?.replace('_', ' ')}
           </span>
-          <span className={styles.recipientCount}>{campaign.recipient_count} recipients</span>
+
+          <span className={styles.recipientCount}>
+            {campaign.recipient_count} recipients
+          </span>
         </div>
-        <ChevronIcon dir={expanded ? 'up' : 'down'} />
+
+        <ChevronIcon
+          dir={expanded ? 'up' : 'down'}
+        />
       </div>
 
       {expanded && (
         <div className={styles.cardBody}>
           <div className={styles.field}>
-            <span className={styles.fieldLabel}>Subject</span>
-            <span className={styles.fieldVal}>{campaign.subject}</span>
-          </div>
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Body template</span>
-            <pre className={styles.body}>{campaign.body_template}</pre>
+            <span className={styles.fieldLabel}>
+              Subject
+            </span>
+
+            <span className={styles.fieldVal}>
+              {campaign.subject}
+            </span>
           </div>
 
-          {error && <div className={styles.error}>{error}</div>}
+          {error && (
+            <div className={styles.error}>
+              {error}
+            </div>
+          )}
 
-          {/* Preview */}
           <div className={styles.previewBar}>
-            <button className={styles.outlineBtn} onClick={() => loadPreview(previewIdx)} disabled={loadingPreview}>
-              {loadingPreview ? 'Loading…' : 'Preview'}
+            <select
+              className={styles.recipientSelect}
+              value={selectedRecipient}
+              onChange={async (e) => {
+                const idx = Number(
+                  e.target.value
+                );
+
+                await loadPreview(idx);
+              }}
+            >
+              {recipientList.map((r) => (
+                <option
+                  key={r.index}
+                  value={r.index}
+                >
+                  {r.name}
+                </option>
+              ))}
+            </select>
+
+            <button
+              className={styles.outlineBtn}
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    'Delete this campaign?'
+                  )
+                )
+                  return;
+
+                try {
+                  await deleteCampaign(
+                    campaign.campaign_id
+                  );
+
+                  removeCampaign(
+                    campaign.campaign_id
+                  );
+                } catch (err) {
+                  setError(err.message);
+                }
+              }}
+            >
+              Delete
             </button>
-            {preview && (
-              <div className={styles.navBtns}>
-                <button className={styles.iconBtn} disabled={previewIdx === 0}
-                  onClick={() => loadPreview(previewIdx - 1)}>‹</button>
-                <span className={styles.previewMeta}>#{previewIdx + 1} / {campaign.recipient_count}</span>
-                <button className={styles.iconBtn} disabled={previewIdx >= campaign.recipient_count - 1}
-                  onClick={() => loadPreview(previewIdx + 1)}>›</button>
-              </div>
-            )}
           </div>
+
+          {loadingPreview && (
+            <div>Loading preview...</div>
+          )}
 
           {preview && (
             <div className={styles.previewCard}>
-              <div className={styles.previewRow}><span className={styles.previewLabel}>To</span>{preview.recipient_email}</div>
-              <div className={styles.previewRow}><span className={styles.previewLabel}>Subject</span>{preview.subject}</div>
-              <pre className={styles.previewBody}>{preview.body}</pre>
-            </div>
-          )}
+              <div className={styles.previewRow}>
+                <span
+                  className={styles.previewLabel}
+                >
+                  To
+                </span>
 
-          {/* Send */}
-          {campaign.status === 'pending_approval' && !sendResult && (
-            <div className={styles.sendArea}>
-              {confirmed && (
-                <div className={styles.confirmNote}>
-                  ⚠ This will send real emails to {campaign.recipient_count} recipients. Click again to confirm.
-                </div>
-              )}
-              <button
-                className={`${styles.sendBtn} ${confirmed ? styles.sendBtnDanger : ''}`}
-                onClick={handleSend}
-                disabled={sending}
+                {preview.recipient_email}
+              </div>
+
+              <div className={styles.previewRow}>
+                <span
+                  className={styles.previewLabel}
+                >
+                  Subject
+                </span>
+
+                {preview.subject}
+              </div>
+
+              <pre
+                className={styles.previewBody}
               >
-                {sending ? 'Sending…' : confirmed ? '⚠ Confirm & Send' : `Send to ${campaign.recipient_count} recipients`}
-              </button>
-              {confirmed && (
-                <button className={styles.cancelBtn} onClick={() => setConfirmed(false)}>Cancel</button>
-              )}
+                {preview.body}
+              </pre>
             </div>
           )}
 
-          {/* Result */}
+          {campaign.status ===
+            'pending_approval' &&
+            !sendResult && (
+              <div className={styles.sendArea}>
+                {confirmed && (
+                  <div
+                    className={styles.confirmNote}
+                  >
+                    ⚠ This will send real
+                    emails to{' '}
+                    {
+                      campaign.recipient_count
+                    }{' '}
+                    recipients.
+                  </div>
+                )}
+
+                <button
+                  className={`${styles.sendBtn} ${
+                    confirmed
+                      ? styles.sendBtnDanger
+                      : ''
+                  }`}
+                  onClick={handleSend}
+                  disabled={sending}
+                >
+                  {sending
+                    ? 'Sending...'
+                    : confirmed
+                    ? '⚠ Confirm & Send'
+                    : `Send to ${campaign.recipient_count} recipients`}
+                </button>
+              </div>
+            )}
+
           {sendResult && (
             <div className={styles.resultCard}>
-              <div className={styles.resultTitle}>Campaign sent</div>
-              <div className={styles.resultGrid}>
-                <Stat label="Sent" val={sendResult.sent} color="var(--green)" />
-                <Stat label="Failed" val={sendResult.failed} color={sendResult.failed > 0 ? 'var(--red)' : 'var(--ink-3)'} />
-                <Stat label="Duplicates" val={sendResult.duplicates} />
-                <Stat label="Skipped" val={sendResult.skipped} />
+              <div
+                className={styles.resultTitle}
+              >
+                Campaign sent
+              </div>
+
+              <div
+                className={styles.resultGrid}
+              >
+                <Stat
+                  label="Sent"
+                  val={sendResult.sent}
+                  color="var(--green)"
+                />
+
+                <Stat
+                  label="Failed"
+                  val={sendResult.failed}
+                  color={
+                    sendResult.failed > 0
+                      ? 'var(--red)'
+                      : 'var(--ink-3)'
+                  }
+                />
+
+                <Stat
+                  label="Duplicates"
+                  val={
+                    sendResult.duplicates
+                  }
+                />
+
+                <Stat
+                  label="Skipped"
+                  val={sendResult.skipped}
+                />
               </div>
             </div>
           )}
@@ -223,6 +414,8 @@ function CampaignCard({ campaign, onSent }) {
     </div>
   );
 }
+
+
 
 function Stat({ label, val, color }) {
   return (

@@ -7,10 +7,8 @@ EmailService    — sends emails via Gmail SMTP with duplicate prevention.
 import hashlib
 import json
 import re
-import smtplib
 from dataclasses import asdict
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import resend
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -120,10 +118,10 @@ class EmailService:
     - Per-email status tracking
     """
 
-    def __init__(self, gmail_address: str, app_password: str):
-        self.gmail_address = gmail_address
-        self.app_password  = app_password
-        self._sent_hashes: set = set()
+    def __init__(self,resend_api_key):
+        resend.api_key = resend_api_key
+
+        self._sent_hashes = set()
         self._load_sent_hashes()
 
     def _load_sent_hashes(self):
@@ -166,25 +164,29 @@ class EmailService:
             )
 
         try:
-            msg            = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"]    = self.gmail_address
-            msg["To"]      = recipient
-
             html_body = f"""
-            <html><body style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
+            <html>
+            <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
             <div style="max-width:600px;margin:0 auto;padding:20px">
             {body.replace(chr(10), '<br>')}
             <hr style="margin-top:30px;border:none;border-top:1px solid #eee">
-            <p style="font-size:11px;color:#999">Campaign ID: {campaign_id}</p>
-            </div></body></html>
+            <p style="font-size:11px;color:#999">
+            Campaign ID: {campaign_id}
+            </p>
+            </div>
+            </body>
+            </html>
             """
-            msg.attach(MIMEText(body,      "plain"))
-            msg.attach(MIMEText(html_body, "html"))
 
-            with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout=20) as server:
-                server.login(self.gmail_address, self.app_password)
-                server.send_message(msg)
+            resend.Emails.send(
+                {
+                    "from": "CRM AI Agent <onboarding@resend.dev>",
+                    "to": [recipient],
+                    "reply_to": "crmaiagent@gmail.com",
+                    "subject": subject,
+                    "html": html_body,
+                }
+            )
 
             self._sent_hashes.add(self._hash(recipient, campaign_id))
             status = EmailStatus(
@@ -193,17 +195,17 @@ class EmailService:
             )
         except Exception as exc:
             logger.error(
-        f"EMAIL FAILED | recipient={recipient} | "
-        f"{type(exc).__name__}: {exc}"
-    )
+                f"EMAIL FAILED | recipient={recipient} | "
+                f"{type(exc).__name__}: {exc}"
+                )
 
-        status = EmailStatus(
-            email=recipient,
-            status="failed",
-            timestamp=ts,
-            campaign_id=campaign_id,
-            error=str(exc),
-        )
+            status = EmailStatus(
+                email=recipient,
+                status="failed",
+                timestamp=ts,
+                campaign_id=campaign_id,
+                error=str(exc),
+            )
 
         return status
 

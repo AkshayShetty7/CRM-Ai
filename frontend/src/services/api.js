@@ -79,6 +79,9 @@ export const previewCampaign = (campaignId, recipientIndex = 0) =>
 export const approveCampaign = (campaignId) =>
   api.post(`/api/campaign/${campaignId}/approve`).then((r) => r.data);
 
+export const deleteCampaign = (campaignId) =>
+  api.delete(`/api/campaign/${campaignId}`).then((r) => r.data);
+
 // ── Audit ──────────────────────────────────────────────────────────────────────
 export const getAuditLog = (eventType = null, lastN = 50) =>
   api

@@ -12,9 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
-GROQ_API_KEY        = os.getenv("GROQ_API_KEY", "")
-GMAIL_ADDRESS       = os.getenv("GMAIL_ADDRESS", "")
-GMAIL_APP_PASSWORD  = os.getenv("GMAIL_APP_PASSWORD", "")
+GROQ_API_KEY       = os.getenv("GROQ_API_KEY", "")
+GMAIL_ADDRESS      = os.getenv("GMAIL_ADDRESS", "")
+GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
+RESEND_API_KEY     = os.getenv("RESEND_API_KEY", "")
 
 # ── LLM ───────────────────────────────────────────────────────────────────────
 DEFAULT_MODEL   = "llama-3.3-70b-versatile"

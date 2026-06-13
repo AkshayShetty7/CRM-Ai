@@ -37,6 +37,17 @@ function reducer(state, action) {
         ...state,
         campaigns: { ...state.campaigns, [action.campaign.campaign_id]: action.campaign },
       };
+
+    case 'CAMPAIGN_DELETED': {
+      const campaigns = { ...state.campaigns };
+
+      delete campaigns[action.campaignId];
+
+      return {
+        ...state,
+        campaigns,
+      };
+    }
     case 'CAMPAIGN_SENT':
       return {
         ...state,
@@ -73,10 +84,12 @@ export function AppProvider({ children }) {
     dispatch({ type: 'CAMPAIGN_SENT', campaignId, result }), []);
   const setTab = useCallback((tab) =>
     dispatch({ type: 'SET_TAB', tab }), []);
+  const removeCampaign = useCallback((campaignId) =>
+    dispatch({type: 'CAMPAIGN_DELETED',campaignId,}),[]);
 
   return (
     <AppContext.Provider
-      value={{ state, setAgentReady, setSchema, setQueryResult, setCampaign, setCampaignSent, setTab }}
+      value={{state,setAgentReady,setSchema,setQueryResult,setCampaign,setCampaignSent,removeCampaign,setTab}}
     >
       {children}
     </AppContext.Provider>

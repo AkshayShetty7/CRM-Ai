@@ -149,22 +149,11 @@ export default function QueryPanel() {
                 </div>
                 <button
                   className={styles.campaignBtn}
-                  onClick={async () => {
-                    setCreatingCampaign(true);
-                    try {
-                      const { createCampaign } = await import('../../services/api');
-                      const campaign = await createCampaign(`Campaign based on: ${state.queryHistory[0]?.question || 'last query'}`);
-                      setCampaign(campaign);
-                      setTab('campaign');
-                    } catch (e) {
-                      setError(e.message);
-                    } finally {
-                      setCreatingCampaign(false);
-                    }
+                  onClick={() => {
+                    setTab('campaign');
                   }}
-                  disabled={creatingCampaign}
                 >
-                  {creatingCampaign ? 'Creating…' : '✉ Create email campaign'}
+                  ✉ Create email campaign
                 </button>
               </div>
             </>
