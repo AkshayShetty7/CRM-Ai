@@ -182,7 +182,7 @@ class EmailService:
             msg.attach(MIMEText(body,      "plain"))
             msg.attach(MIMEText(html_body, "html"))
 
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            with smtplib.SMTP_SSL("smtp.gmail.com",465,timeout=20) as server:
                 server.login(self.gmail_address, self.app_password)
                 server.send_message(msg)
 
@@ -192,10 +192,18 @@ class EmailService:
                 timestamp=ts, campaign_id=campaign_id,
             )
         except Exception as exc:
-            status = EmailStatus(
-                email=recipient, status="failed",
-                timestamp=ts, campaign_id=campaign_id, error=str(exc),
-            )
+            logger.error(
+        f"EMAIL FAILED | recipient={recipient} | "
+        f"{type(exc).__name__}: {exc}"
+    )
+
+        status = EmailStatus(
+            email=recipient,
+            status="failed",
+            timestamp=ts,
+            campaign_id=campaign_id,
+            error=str(exc),
+        )
 
         return status
 
