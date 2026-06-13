@@ -82,9 +82,12 @@ class CRMAgent:
         self.email_gen    : Optional[EmailGenerator] = None
         self.email_service: Optional[EmailService]   = None
 
-        if RESEND_API_KEY:
+        if GMAIL_ADDRESS and GMAIL_APP_PASSWORD:
             self.email_gen = EmailGenerator(self.llm, self.org)
-            self.email_service = EmailService(RESEND_API_KEY)
+            self.email_service = EmailService(
+                GMAIL_ADDRESS,
+                GMAIL_APP_PASSWORD,
+            )
 
         logger.info(f"CRMAgent initialized for '{org_name}' with model '{model}'")
 

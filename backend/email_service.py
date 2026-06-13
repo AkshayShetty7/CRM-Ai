@@ -1,8 +1,3 @@
-"""
-email_service.py
-EmailGenerator  — uses the LLM to write personalised email subject + body templates.
-EmailService    — sends emails via Gmail SMTP with duplicate prevention.
-"""
 
 import hashlib
 import json
@@ -11,6 +6,9 @@ from dataclasses import asdict
 import resend
 from datetime import datetime
 from typing import Dict, List, Optional
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import pandas as pd
 from langchain_groq import ChatGroq
@@ -118,8 +116,9 @@ class EmailService:
     - Per-email status tracking
     """
 
-    def __init__(self,resend_api_key):
-        resend.api_key = resend_api_key
+    def __init__(self,gmail_address: str,app_password: str):
+        self.gmail_address = gmail_address
+        self.app_password = app_password
 
         self._sent_hashes = set()
         self._load_sent_hashes()
@@ -164,6 +163,11 @@ class EmailService:
             )
 
         try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = self.gmail_address
+            msg["To"] = recipient
+
             html_body = f"""
             <html>
             <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
@@ -178,20 +182,29 @@ class EmailService:
             </html>
             """
 
-            resend.Emails.send(
-                {
-                    "from": "CRM AI Agent <onboarding@resend.dev>",
-                    "to": [recipient],
-                    "reply_to": "crmaiagent@gmail.com",
-                    "subject": subject,
-                    "html": html_body,
-                }
+            msg.attach(MIMEText(body, "plain"))
+            msg.attach(MIMEText(html_body, "html"))
+
+            with smtplib.SMTP_SSL(
+                "smtp.gmail.com",
+                465,
+                timeout=20
+            ) as server:
+                server.login(
+                    self.gmail_address,
+                    self.app_password
+                )
+                server.send_message(msg)
+
+                self._sent_hashes.add(
+                self._hash(recipient, campaign_id)
             )
 
-            self._sent_hashes.add(self._hash(recipient, campaign_id))
             status = EmailStatus(
-                email=recipient, status="sent",
-                timestamp=ts, campaign_id=campaign_id,
+                email=recipient,
+                status="sent",
+                timestamp=ts,
+                campaign_id=campaign_id,
             )
         except Exception as exc:
             logger.error(
