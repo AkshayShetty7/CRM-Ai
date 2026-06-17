@@ -2,11 +2,12 @@ import sys
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Any, Dict, List, Optional
-
+import math
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+from config import logger
 
 # ── Make sure sibling modules are importable ──────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
@@ -87,6 +88,23 @@ def _serialise_schema(schema) -> Dict:
         ],
     }
 
+def clean_nan(obj):
+    if obj is None:
+        return None
+
+    try:
+        if math.isnan(obj):
+            return None
+    except (TypeError, ValueError):
+        pass
+
+    if isinstance(obj, dict):
+        return {k: clean_nan(v) for k, v in obj.items()}
+
+    if isinstance(obj, list):
+        return [clean_nan(v) for v in obj]
+
+    return obj
 
 # ── Health ────────────────────────────────────────────────────────────────────
 @app.get("/health")
@@ -155,15 +173,22 @@ def ask(req: AskRequest):
             status_code=422,
             content={"error": result["error"], "plan": result.get("plan")},
         )
-    return {
-        "row_count":      result.get("row_count", 0),
-        "columns":        result.get("columns", []),
-        "data":           result.get("data", []),
-        "sql":            result.get("sql", ""),
-        "plan":           result.get("plan", {}),
-        "intent_summary": result.get("intent_summary", ""),
-    }
+    response = {
+    "row_count": result.get("row_count", 0),
+    "columns": result.get("columns", []),
+    "data": result.get("data", []),
+    "sql": result.get("sql", ""),
+    "plan": result.get("plan", {}),
+    "intent_summary": result.get("intent_summary", ""),
+}
+    import json
 
+    try:
+        json.dumps(response, allow_nan=False)
+    except Exception as e:
+        logger.error(f"JSON ERROR: {e}")
+        logger.error(str(response))
+    return clean_nan(response)
 
 @app.post("/api/reset")
 def reset_conversation():
