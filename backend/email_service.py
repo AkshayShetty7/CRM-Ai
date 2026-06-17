@@ -3,7 +3,6 @@ import hashlib
 import json
 import re
 from dataclasses import asdict
-import resend
 from datetime import datetime
 from typing import Dict, List, Optional
 
