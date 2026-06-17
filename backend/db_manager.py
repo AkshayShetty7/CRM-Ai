@@ -69,7 +69,11 @@ class DuckDBManager:
                 None
             )
 
-            records = result_df.to_dict(orient="records")
+            records = (
+                result_df
+                .replace({float("nan"): None})
+                .to_dict(orient="records")
+            )
 
             self._last_results = records
             logger.info(f"Query OK → {len(records):,} rows")

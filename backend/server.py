@@ -88,15 +88,15 @@ def _serialise_schema(schema) -> Dict:
         ],
     }
 
+import pandas as pd
+
 def clean_nan(obj):
-    if obj is None:
+
+    if pd.isna(obj):
         return None
 
-    try:
-        if math.isnan(obj):
-            return None
-    except (TypeError, ValueError):
-        pass
+    if isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
 
     if isinstance(obj, dict):
         return {k: clean_nan(v) for k, v in obj.items()}
@@ -256,14 +256,14 @@ def preview_campaign(campaign_id: str, recipient_index: int = 0):
             else {}
         )
 
-        return {
-            "recipient_name": recipient.get(name_col, "") if name_col else "",
-            "subject": preview["subject"],
-            "body": preview["body"],
-            "recipient_email": recipient.get(email_col, "") if email_col else "",
-            "recipient_index": recipient_index,
-            "total_recipients": campaign.recipient_count,
-        }
+        return clean_nan({
+    "recipient_name": recipient.get(name_col, "") if name_col else "",
+    "subject": preview["subject"],
+    "body": preview["body"],
+    "recipient_email": recipient.get(email_col, "") if email_col else "",
+    "recipient_index": recipient_index,
+    "total_recipients": campaign.recipient_count,
+})
 
     except IndexError as exc:
         raise HTTPException(
