@@ -88,21 +88,34 @@ def _serialise_schema(schema) -> Dict:
         ],
     }
 
+import math
 import pandas as pd
+import numpy as np
+
 
 def clean_nan(obj):
 
-    if pd.isna(obj):
-        return None
+    if isinstance(obj, dict):
+        return {
+            k: clean_nan(v)
+            for k, v in obj.items()
+        }
+
+    if isinstance(obj, list):
+        return [
+            clean_nan(v)
+            for v in obj
+        ]
 
     if isinstance(obj, pd.Timestamp):
         return obj.isoformat()
 
-    if isinstance(obj, dict):
-        return {k: clean_nan(v) for k, v in obj.items()}
+    if isinstance(obj, np.datetime64):
+        return str(obj)
 
-    if isinstance(obj, list):
-        return [clean_nan(v) for v in obj]
+    if isinstance(obj, (float, np.floating)):
+        if math.isnan(obj):
+            return None
 
     return obj
 
@@ -188,6 +201,7 @@ def ask(req: AskRequest):
     except Exception as e:
         logger.error(f"JSON ERROR: {e}")
         logger.error(str(response))
+
     return clean_nan(response)
 
 @app.post("/api/reset")
