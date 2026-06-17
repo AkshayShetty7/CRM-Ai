@@ -1,8 +1,4 @@
-"""
-query_plan_generator.py
-Uses the LLM (Groq / LangChain) to convert a natural language question
-into a QueryPlan JSON object.  The LLM never sees SQL and never produces SQL.
-"""
+
 
 import json
 import re

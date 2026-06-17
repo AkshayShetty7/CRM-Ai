@@ -1,10 +1,3 @@
-"""
-db_manager.py
-Manages an in-memory DuckDB connection.
-Loads DataFrames, executes validated SELECT queries, manages exports,
-and stores active EmailCampaign objects.
-"""
-
 import re
 from datetime import datetime
 from pathlib import Path

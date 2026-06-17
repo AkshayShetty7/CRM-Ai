@@ -1,10 +1,4 @@
-"""
-query_executor.py
-Orchestrates the full query pipeline:
-  Question → QueryPlanGenerator → QueryBuilder → DuckDBManager → Result
 
-Also manages rolling conversation context and calls the AuditLogger.
-"""
 
 from datetime import datetime
 from typing import Dict, List, Optional

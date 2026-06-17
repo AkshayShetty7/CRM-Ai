@@ -1,9 +1,4 @@
-"""
-schema_analyzer.py
-Inspects a Pandas DataFrame and produces a rich SchemaSummary.
-Detects column types, nullability, cardinality, and example values.
-No hardcoded column names — works with any schema.
-"""
+
 
 from typing import Any, List
 

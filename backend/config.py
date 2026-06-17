@@ -1,9 +1,3 @@
-"""
-config.py
-All environment variables, model settings, path constants, and logging setup.
-Imported by every other module — never imports from sibling modules.
-"""
-
 import os
 import logging
 from pathlib import Path
@@ -13,9 +7,8 @@ load_dotenv()
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
 GROQ_API_KEY       = os.getenv("GROQ_API_KEY", "")
-GMAIL_ADDRESS      = os.getenv("GMAIL_ADDRESS", "")
-GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
-RESEND_API_KEY     = os.getenv("RESEND_API_KEY", "")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "")
 
 # ── LLM ───────────────────────────────────────────────────────────────────────
 DEFAULT_MODEL   = "llama-3.3-70b-versatile"

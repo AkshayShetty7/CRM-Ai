@@ -34,7 +34,6 @@ class InitRequest(BaseModel):
     org_description: str
     support_number: str = "1800-000-0000"
     email_id: str = "support@example.com"
-    groq_api_key: str
 
 
 class AskRequest(BaseModel):
@@ -105,7 +104,6 @@ def init_agent(req: InitRequest):
             org_description = req.org_description,
             support_number  = req.support_number,
             email_id        = req.email_id,
-            groq_api_key    = req.groq_api_key,
         )
         return {"status": "initialized", "org_name": req.org_name}
     except Exception as exc:
@@ -200,6 +198,7 @@ def create_campaign(req: CampaignRequest):
             "recipient_count": campaign.recipient_count,
             "status":          campaign.status,
             "created_at":      campaign.created_at,
+            "warning": getattr(campaign, "warning", None),
         }
     except (RuntimeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc))

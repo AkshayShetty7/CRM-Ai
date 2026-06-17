@@ -1,8 +1,3 @@
-"""
-models.py
-Pure data containers — dataclasses only.
-No business logic, no I/O, no LLM calls.
-"""
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -69,6 +64,7 @@ class EmailCampaign:
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     sent_emails: List[Dict] = field(default_factory=list)
     failed_emails: List[Dict] = field(default_factory=list)
+    warning: Optional[str] = None
 
     def to_dict(self) -> Dict:
         return asdict(self)

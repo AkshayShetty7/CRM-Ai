@@ -1,8 +1,4 @@
-"""
-query_plan.py
-Pydantic models that describe the structured query intent produced by the LLM.
-Python builds SQL from these models — the LLM never writes SQL directly.
-"""
+
 
 import json
 from typing import Any, List, Literal, Optional

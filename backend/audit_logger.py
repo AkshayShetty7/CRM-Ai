@@ -1,9 +1,3 @@
-"""
-audit_logger.py
-Append-only JSONL audit trail.
-Logs: file uploads, query plans, SQL executions, email campaigns, email statuses.
-"""
-
 import json
 from dataclasses import asdict
 from datetime import datetime

@@ -6,9 +6,9 @@ from dataclasses import asdict
 import resend
 from datetime import datetime
 from typing import Dict, List, Optional
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 import pandas as pd
 from langchain_groq import ChatGroq
@@ -19,10 +19,7 @@ from models import EmailCampaign, EmailStatus, Organization
 
 # ── Email Content Generator ───────────────────────────────────────────────────
 class EmailGenerator:
-    """
-    Uses the LLM to create personalised email subject + body templates.
-    Templates use {{Column Name}} placeholders.
-    """
+
 
     def __init__(self, llm: ChatGroq, org: Organization):
         self.llm = llm
@@ -109,16 +106,11 @@ Return ONLY valid JSON with keys 'subject' and 'body'. No markdown, no explanati
 
 # ── SMTP Email Sender ─────────────────────────────────────────────────────────
 class EmailService:
-    """
-    Sends emails via Gmail SMTP with:
-    - Personalisation from row data
-    - Duplicate prevention (SHA-256 hash-based)
-    - Per-email status tracking
-    """
 
-    def __init__(self,gmail_address: str,app_password: str):
-        self.gmail_address = gmail_address
-        self.app_password = app_password
+
+    def __init__(self, sendgrid_api_key, from_email):
+        self.sendgrid_api_key = sendgrid_api_key
+        self.from_email = from_email
 
         self._sent_hashes = set()
         self._load_sent_hashes()
@@ -163,11 +155,6 @@ class EmailService:
             )
 
         try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = self.gmail_address
-            msg["To"] = recipient
-
             html_body = f"""
             <html>
             <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
@@ -182,21 +169,23 @@ class EmailService:
             </html>
             """
 
-            msg.attach(MIMEText(body, "plain"))
-            msg.attach(MIMEText(html_body, "html"))
+            message = Mail(
+                from_email=self.from_email,
+                to_emails=recipient,
+                subject=subject,
+                html_content=html_body,
+            )
 
-            with smtplib.SMTP_SSL(
-                "smtp.gmail.com",
-                465,
-                timeout=20
-            ) as server:
-                server.login(
-                    self.gmail_address,
-                    self.app_password
+            sg = SendGridAPIClient(self.sendgrid_api_key)
+
+            response = sg.send(message)
+
+            if response.status_code not in (200, 202):
+                raise Exception(
+                    f"SendGrid returned status {response.status_code}"
                 )
-                server.send_message(msg)
 
-                self._sent_hashes.add(
+            self._sent_hashes.add(
                 self._hash(recipient, campaign_id)
             )
 
@@ -206,11 +195,12 @@ class EmailService:
                 timestamp=ts,
                 campaign_id=campaign_id,
             )
+
         except Exception as exc:
             logger.error(
                 f"EMAIL FAILED | recipient={recipient} | "
                 f"{type(exc).__name__}: {exc}"
-                )
+            )
 
             status = EmailStatus(
                 email=recipient,

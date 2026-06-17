@@ -15,7 +15,6 @@ export default function SetupPage() {
     org_description: '',
     support_number: '1800-000-0000',
     email_id: 'support@example.com',
-    groq_api_key: '',
   });
 
   const [file, setFile] = useState(null);
@@ -26,10 +25,10 @@ export default function SetupPage() {
 
   const handleInit = async (e) => {
     e.preventDefault();
-    if (!form.org_name.trim() || !form.groq_api_key.trim()) {
-      setError('Organisation name and Groq API key are required.');
-      return;
-    }
+    if (!form.org_name.trim()) {
+  setError('Organisation Name is required.');
+  return;
+}
     setError('');
     setLoading(true);
     try {
@@ -76,7 +75,7 @@ export default function SetupPage() {
         {step === 1 && (
           <>
             <h1 className={styles.heading}>Configure your agent</h1>
-            <p className={styles.sub}>Connect your Groq API key and describe your organisation.</p>
+            <p className={styles.sub}> Describe your organisation.</p>
 
             <form onSubmit={handleInit} className={styles.form}>
               <Field label="Organisation Name" required>
@@ -94,10 +93,7 @@ export default function SetupPage() {
                   <input name="email_id" value={form.email_id} onChange={handleChange} type="email" />
                 </Field>
               </div>
-              <Field label="Groq API Key" required>
-                <input name="groq_api_key" value={form.groq_api_key} onChange={handleChange}
-                  type="password" placeholder="gsk_..." />
-              </Field>
+             
 
               {error && <p className={styles.error}>{error}</p>}
 

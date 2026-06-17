@@ -1,13 +1,11 @@
 import uuid
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
-from config import RESEND_API_KEY
 from langchain_groq import ChatGroq
 
 from audit_logger import AuditLogger
 from config import (
-    DEFAULT_MODEL, GMAIL_ADDRESS, GMAIL_APP_PASSWORD,
-    GROQ_API_KEY, LLM_MAX_TOKENS, LLM_TEMPERATURE, logger,
+    DEFAULT_MODEL,SENDGRID_API_KEY,FROM_EMAIL,GROQ_API_KEY,LLM_MAX_TOKENS,LLM_TEMPERATURE,logger,
 )
 from db_manager import DuckDBManager
 from email_service import EmailGenerator, EmailService
@@ -24,7 +22,6 @@ class CRMAgent:
         support_number  : str = "1800-000-0000",
         email_id        : str = "support@example.com",
         model           : str = DEFAULT_MODEL,
-        groq_api_key    : Optional[str] = None,
     ):
         self.org = Organization(
             name           = org_name,
@@ -38,43 +35,17 @@ class CRMAgent:
 
        
 
-        selected_key = None
-
-        if groq_api_key:
-            try:
-                test_llm = ChatGroq(
-                    model=model,
-                    temperature=LLM_TEMPERATURE,
-                    max_tokens=16,
-                    groq_api_key=groq_api_key,
-                )
-
-                # tiny test call
-                test_llm.invoke("ping")
-
-                selected_key = groq_api_key
-                logger.info("Using frontend Groq API key")
-
-            except Exception as exc:
-                logger.warning(
-                    f"Frontend API key failed ({exc}). Falling back to .env key."
-                )
-
-        if not selected_key:
-            if not GROQ_API_KEY:
-                raise ValueError(
-                    "No valid Groq API key available."
-                )
-
-            selected_key = GROQ_API_KEY
-            logger.info("Using .env Groq API key")
+        if not GROQ_API_KEY:
+            raise ValueError("GROQ_API_KEY not configured")
 
         self.llm = ChatGroq(
             model=model,
             temperature=LLM_TEMPERATURE,
             max_tokens=LLM_MAX_TOKENS,
-            groq_api_key=selected_key,
+            groq_api_key=GROQ_API_KEY,
         )
+
+        logger.info("Using Render environment Groq API key")
 
         plan_gen      = QueryPlanGenerator(self.llm)
         self.executor = QueryExecutor(self.db, plan_gen, self.audit)
@@ -82,11 +53,11 @@ class CRMAgent:
         self.email_gen    : Optional[EmailGenerator] = None
         self.email_service: Optional[EmailService]   = None
 
-        if GMAIL_ADDRESS and GMAIL_APP_PASSWORD:
+        if SENDGRID_API_KEY and FROM_EMAIL:
             self.email_gen = EmailGenerator(self.llm, self.org)
             self.email_service = EmailService(
-                GMAIL_ADDRESS,
-                GMAIL_APP_PASSWORD,
+                SENDGRID_API_KEY,
+                FROM_EMAIL,
             )
 
         logger.info(f"CRMAgent initialized for '{org_name}' with model '{model}'")
@@ -123,39 +94,88 @@ class CRMAgent:
 
     def create_campaign(
         self,
-        context    : str,
-        recipients : Optional[List[Dict]] = None,
+        context: str,
+        recipients: Optional[List[Dict]] = None,
     ) -> EmailCampaign:
         """Generate an email campaign draft (not yet sent)."""
+
         if not self.email_gen:
-            raise RuntimeError("EmailGenerator not initialized (LLM not available).")
+            raise RuntimeError(
+                "EmailGenerator not initialized (LLM not available)."
+            )
 
         recipients = recipients or self.executor.ctx.last_data
-        if not recipients:
-            raise ValueError("No recipients. Run a query first or pass recipients explicitly.")
 
-        available_cols = [c.name for c in (self.db.schema.columns if self.db.schema else [])]
+        if not recipients:
+            raise ValueError(
+                "No recipients. Run a query first or pass recipients explicitly."
+            )
+
+        # ── Email warning check (DO NOT BLOCK CAMPAIGN) ───────────
+
+        email_column = (
+    self.db.schema.email_column
+    if self.db.schema
+    else None
+)
+
+        logger.warning(f"EMAIL COLUMN = {email_column}")
+        missing_count = 0
+
+        if email_column:
+            for row in recipients:
+                email = str(
+                    row.get(email_column, "")
+                ).strip()
+
+                if not email or "@" not in email:
+                    missing_count += 1
+
+        warning = None
+
+        if missing_count > 0:
+            warning = (
+                f"{missing_count} recipient(s) have missing or invalid email addresses. "
+                "They will be skipped when sending."
+            )
+
+            logger.warning(warning)
+
+        # ── Existing code ────────────────────────────────────────
+
+        available_cols = [
+            c.name
+            for c in (
+                self.db.schema.columns
+                if self.db.schema
+                else []
+            )
+        ]
 
         content = self.email_gen.generate_campaign(
-            campaign_context  = context,
-            recipient_count   = len(recipients),
-            sample_data       = recipients[:3],
-            available_columns = available_cols,
+            campaign_context=context,
+            recipient_count=len(recipients),
+            sample_data=recipients[:3],
+            available_columns=available_cols,
         )
 
         campaign = EmailCampaign(
-            campaign_id       = str(uuid.uuid4())[:8],
-            org_name          = self.org.name,
-            query_description = context,
-            recipient_count   = len(recipients),
-            subject           = content["subject"],
-            body_template     = content["body"],
-            recipients        = recipients,
-            status            = "pending_approval",
+            campaign_id=str(uuid.uuid4())[:8],
+            org_name=self.org.name,
+            query_description=context,
+            recipient_count=len(recipients),
+            subject=content["subject"],
+            body_template=content["body"],
+            recipients=recipients,
+            status="pending_approval",
         )
+
+        # attach warning dynamically
+        campaign.warning = warning
 
         self.db._campaigns[campaign.campaign_id] = campaign
         self.audit.log_campaign_created(campaign)
+
         return campaign
 
     def preview_campaign(

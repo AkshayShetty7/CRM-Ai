@@ -20,6 +20,7 @@ export default function CampaignPanel() {
     setError('');
     try {
       const campaign = await createCampaign(context.trim());
+      console.log("CAMPAIGN RESPONSE", campaign);
       setCampaign(campaign);
       setContext('');
     } catch (err) {
@@ -235,15 +236,35 @@ function CampaignCard({ campaign, onSent }) {
       {expanded && (
         <div className={styles.cardBody}>
           <div className={styles.field}>
-            <span className={styles.fieldLabel}>
-              Subject
-            </span>
+  <span className={styles.fieldLabel}>
+    Subject
+  </span>
 
-            <span className={styles.fieldVal}>
-              {campaign.subject}
-            </span>
-          </div>
+  <span className={styles.fieldVal}>
+    {campaign.subject}
+  </span>
+</div>
 
+{campaign.warning && (
+  <div
+    style={{
+      padding: '10px',
+      marginBottom: '12px',
+      borderRadius: '8px',
+      background: '#fff3cd',
+      color: '#856404',
+      border: '1px solid #ffeeba'
+    }}
+  >
+    {campaign.warning}
+  </div>
+)}
+
+{error && (
+  <div className={styles.error}>
+    {error}
+  </div>
+)}
           {error && (
             <div className={styles.error}>
               {error}
