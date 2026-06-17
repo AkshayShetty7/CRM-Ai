@@ -63,14 +63,22 @@ class DuckDBManager:
                 if params
                 else self.conn.execute(sql).fetchdf()
             )
-            records            = result_df.to_dict(orient="records")
+
+            result_df = result_df.where(
+                pd.notnull(result_df),
+                None
+            )
+
+            records = result_df.to_dict(orient="records")
+
             self._last_results = records
             logger.info(f"Query OK → {len(records):,} rows")
+
             return {
                 "row_count": len(records),
-                "columns":   result_df.columns.tolist(),
-                "data":      records,
-                "sql":       sql,
+                "columns": result_df.columns.tolist(),
+                "data": records,
+                "sql": sql,
             }
         except Exception as exc:
             logger.error(f"Query FAILED: {exc}\nSQL: {sql}")
