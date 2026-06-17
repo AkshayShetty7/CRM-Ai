@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
-
+import numpy as np
 import duckdb
 import pandas as pd
 
@@ -58,24 +58,32 @@ class DuckDBManager:
             return {"error": error, "sql": sql}
 
         try:
+            
             result_df = (
                 self.conn.execute(sql, params).fetchdf()
                 if params
                 else self.conn.execute(sql).fetchdf()
             )
 
-            result_df = result_df.where(
-                pd.notnull(result_df),
-                None
-            )
+            records = result_df.to_dict(orient="records")
 
-            records = (
-                result_df
-                .replace({float("nan"): None})
-                .to_dict(orient="records")
-            )
+            for row in records:
+                for key, value in row.items():
+
+                    if pd.isna(value):
+                        row[key] = None
+
+                    elif isinstance(value, pd.Timestamp):
+                        row[key] = value.isoformat()
+
+                    elif hasattr(value, "item"):
+                        try:
+                            row[key] = value.item()
+                        except Exception:
+                            pass
 
             self._last_results = records
+
             logger.info(f"Query OK → {len(records):,} rows")
 
             return {
@@ -84,6 +92,7 @@ class DuckDBManager:
                 "data": records,
                 "sql": sql,
             }
+
         except Exception as exc:
             logger.error(f"Query FAILED: {exc}\nSQL: {sql}")
             return {"error": str(exc), "sql": sql}
