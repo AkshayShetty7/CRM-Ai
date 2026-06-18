@@ -61,9 +61,6 @@ crm-frontend/
 ### Frontend
 
 - React
-- Axios
-- Context API
-- CSS Modules
 
 ### Backend
 
