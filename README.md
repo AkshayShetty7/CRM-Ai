@@ -164,9 +164,9 @@ JSON
 ### Backend (`.env`)
 
 ```env
-GROQ_API_KEY=your_groq_key
+GROQ_API_KEY=groq_key
 
-SENDGRID_API_KEY=your_sendgrid_key
+SENDGRID_API_KEY=sendgrid_key
 
 FROM_EMAIL=verified_sender@example.com
 ```
