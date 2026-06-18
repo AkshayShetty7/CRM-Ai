@@ -1,132 +1,189 @@
-# AI CRM Agent — Full Stack
+# AI CRM Agent
 
-React frontend + modular Python backend for the AI-powered CRM Agent.
+An AI-powered CRM application that allows businesses to upload customer data, ask questions in natural language, generate insights, and create personalized email campaigns.
+
+The system uses Large Language Models (LLMs) to convert user questions into database queries, making customer data accessible without writing SQL.
 
 ---
 
-## Project structure
+## Features
 
-```
+- Upload customer datasets (`.csv`, `.xlsx`, `.xls`)
+- Query data using plain English
+- Automatic SQL generation
+- Schema analysis and data profiling
+- AI-generated email campaigns
+- Personalized email previews
+- Send campaigns through SendGrid
+- Audit logging for transparency
+- Export results as CSV, Excel, or JSON
+
+---
+
+## Project Structure
+
+```text
 crm-frontend/
 │
-├── backend/                     ← Python backend (FastAPI + CRM logic)
-│   ├── server.py                ← FastAPI app — HTTP entry point
-│   ├── crm_agent.py             ← Top-level CRMAgent orchestrator
-│   ├── config.py                ← Env vars, paths, logging
-│   ├── models.py                ← Pure dataclasses (no I/O)
-│   ├── schema_analyzer.py       ← DataFrame → SchemaSummary
-│   ├── db_manager.py            ← DuckDB connection + SQL execution
-│   ├── query_plan.py            ← Pydantic QueryPlan models
-│   ├── query_plan_generator.py  ← LLM → QueryPlan JSON
-│   ├── query_builder.py         ← QueryPlan → safe parameterised SQL
-│   ├── query_executor.py        ← Pipeline orchestrator + ConversationContext
-│   ├── email_service.py         ← EmailGenerator (LLM) + EmailService (SMTP)
-│   ├── audit_logger.py          ← Append-only JSONL audit trail
+├── backend/
+│   ├── server.py
+│   ├── crm_agent.py
+│   ├── config.py
+│   ├── models.py
+│   ├── schema_analyzer.py
+│   ├── db_manager.py
+│   ├── query_plan.py
+│   ├── query_plan_generator.py
+│   ├── query_builder.py
+│   ├── query_executor.py
+│   ├── email_service.py
+│   ├── audit_logger.py
 │   ├── requirements.txt
 │   └── .env.example
 │
-├── src/                         ← React frontend
-│   ├── App.jsx
-│   ├── index.js / index.css
-│   ├── context/AppContext.jsx   ← Global state (useReducer)
-│   ├── services/api.js          ← All HTTP calls (axios)
-│   └── components/
-│       ├── layout/              ← SetupPage, Dashboard, Sidebar
-│       ├── query/               ← QueryPanel, DataTable, SqlBlock, PlanViewer
-│       ├── schema/              ← SchemaPanel
-│       ├── campaign/            ← CampaignPanel
-│       └── audit/               ← AuditPanel
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── context/
+│   │   ├── services/
+│   │   └── components/
+│   │
+│   └── public/
 │
-├── public/index.html
 ├── package.json
-└── .env                         ← REACT_APP_API_URL=http://localhost:8000
+└── README.md
 ```
 
 ---
 
-## Backend module dependency graph
+## Technology Stack
 
+### Frontend
+
+- React
+- Axios
+- Context API
+- CSS Modules
+
+### Backend
+
+- FastAPI
+- DuckDB
+- Pandas
+- LangChain
+- Groq LLM
+- SendGrid
+
+### Deployment
+
+- Frontend: Vercel
+- Backend: Render
+
+---
+
+
+
+---
+
+## How to Use
+
+### 1. Configure Agent
+
+Enter:
+
+- Organization Name
+- Organization Description
+- Support Number
+- Support Email
+
+### 2. Upload Dataset
+
+Supported formats:
+
+```text
+.csv
+.xlsx
+.xls
 ```
-server.py
-  └── crm_agent.py
-        ├── config.py          (no deps)
-        ├── models.py          (no deps)
-        ├── db_manager.py      → config, models, schema_analyzer
-        ├── schema_analyzer.py → models
-        ├── query_executor.py  → audit_logger, db_manager, query_builder,
-        │                         query_plan, query_plan_generator
-        ├── query_plan.py      → config
-        ├── query_plan_generator.py → config, models, query_plan
-        ├── query_builder.py   → db_manager, models, query_plan
-        ├── email_service.py   → config, models
-        └── audit_logger.py    → config, models
+
+### 3. Query Data
+
+Example questions:
+
+```text
+Show customers whose warranty expires within 30 days
+
+List customers who purchased an iPhone
+
+Show total revenue by product
+```
+
+The AI automatically generates and executes SQL.
+
+### 4. Create Campaign
+
+Generate personalized email campaigns based on query results.
+
+### 5. Preview Campaign
+
+Review generated content before sending.
+
+### 6. Send Campaign
+
+Emails are delivered through SendGrid.
+
+### 7. Export Results
+
+Export data as:
+
+```text
+CSV
+Excel
+JSON
 ```
 
 ---
 
-## Quick start
+## API Endpoints
 
-### 1 — Backend
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env — add GROQ_API_KEY (and optionally GMAIL_* for email campaigns)
-
-pip install -r requirements.txt
-uvicorn server:app --reload --port 8000
-```
-
-Health check: http://localhost:8000/health → `{"status":"ok","agent_ready":false}`
-Auto docs:    http://localhost:8000/docs
-
-### 2 — Frontend
-
-```bash
-# from the crm-frontend/ root
-npm install
-npm start          # opens http://localhost:3000
-```
-
-### 3 — Use
-
-1. **Configure** — Enter org name, description, Groq API key on the setup screen.
-2. **Upload** — Drop your `.xlsx` / `.csv` file.
-3. **Query** — Ask questions in plain English. Results appear with generated SQL and QueryPlan.
-4. **Schema** — Browse column types, nulls, and example values.
-5. **Campaigns** — Generate → Preview → Approve → Send personalised email campaigns.
-6. **Audit** — View the full append-only activity log.
+| Method | Endpoint | Description |
+|----------|----------|----------|
+| GET | `/health` | Health check |
+| POST | `/api/init` | Initialize CRM Agent |
+| POST | `/api/upload` | Upload dataset |
+| GET | `/api/schema` | Get schema summary |
+| POST | `/api/ask` | Ask a natural language question |
+| POST | `/api/reset` | Reset conversation |
+| POST | `/api/export` | Export results |
+| POST | `/api/campaign/create` | Create email campaign |
+| GET | `/api/campaign/{id}/preview` | Preview campaign |
+| POST | `/api/campaign/{id}/approve` | Send campaign |
+| DELETE | `/api/campaign/{id}` | Delete campaign |
+| DELETE | `/api/dataset` | Remove uploaded dataset |
+| GET | `/api/audit` | View audit logs |
 
 ---
 
-## API endpoints
+## Environment Variables
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET  | `/health` | Health check |
-| POST | `/api/init` | Initialise agent (org + API key) |
-| POST | `/api/upload` | Upload .xlsx/.xls/.csv |
-| GET  | `/api/schema` | Current schema |
-| POST | `/api/ask` | Natural language query |
-| POST | `/api/reset` | Reset conversation context |
-| POST | `/api/export` | Download results (csv/excel/json) |
-| POST | `/api/campaign/create` | Generate campaign draft |
-| GET  | `/api/campaign/:id/preview` | Preview one recipient |
-| POST | `/api/campaign/:id/approve` | Approve and send |
-| GET  | `/api/audit` | Audit log (filterable) |
+### Backend (`.env`)
+
+```env
+GROQ_API_KEY=your_groq_key
+
+SENDGRID_API_KEY=your_sendgrid_key
+
+FROM_EMAIL=verified_sender@example.com
+```
 
 ---
 
-## Environment variables
 
-### `backend/.env`
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GROQ_API_KEY` | Yes | Groq API key (`gsk_…`) |
-| `GMAIL_ADDRESS` | No | Gmail sender address |
-| `GMAIL_APP_PASSWORD` | No | Gmail app password |
+## Live Demo
 
-### `crm-frontend/.env`
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REACT_APP_API_URL` | `http://localhost:8000` | Backend URL |
+Frontend:
+https://crm-ai-kappa.vercel.app/
+
+Backend:
+https://crm-ai-x5gw.onrender.com
+
