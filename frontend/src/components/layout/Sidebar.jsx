@@ -6,7 +6,6 @@ const NAV = [
   { id: 'query',    label: 'Query',    icon: SearchIcon },
   { id: 'schema',   label: 'Schema',   icon: TableIcon },
   { id: 'campaign', label: 'Campaigns', icon: MailIcon },
-  { id: 'audit',    label: 'Audit Log', icon: ClockIcon },
 ];
 
 export default function Sidebar() {

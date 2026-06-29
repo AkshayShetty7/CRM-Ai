@@ -4,14 +4,12 @@ import Sidebar from './Sidebar';
 import QueryPanel from '../query/QueryPanel';
 import SchemaPanel from '../schema/SchemaPanel';
 import CampaignPanel from '../campaign/CampaignPanel';
-import AuditPanel from '../audit/AuditPanel';
 import styles from './Dashboard.module.css';
 
 const PANELS = {
   query: QueryPanel,
   schema: SchemaPanel,
   campaign: CampaignPanel,
-  audit: AuditPanel,
 };
 
 export default function Dashboard() {
