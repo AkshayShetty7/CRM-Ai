@@ -2,14 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ask, resetConversation, exportResults } from '../../services/api';
 import { useAppContext } from '../../context/AppContext';
 import DataTable from './DataTable';
-import SqlBlock from './SqlBlock';
-import PlanViewer from './PlanViewer';
 import styles from './QueryPanel.module.css';
 
 const SUGGESTIONS = [
   'Show me all customers',
   'Customers whose warranty expires in the next 30 days',
-  'How many customers per city, sorted by count descending?',
   'Show customers who bought Samsung products',
   'Top 10 customers by purchase amount',
 ];
@@ -21,7 +18,6 @@ export default function QueryPanel() {
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
   const [creatingCampaign, setCreatingCampaign] = useState(false);
-  const [showPlan, setShowPlan] = useState(false);
   const inputRef = useRef();
 
   const result = state.lastResult;
@@ -121,18 +117,10 @@ export default function QueryPanel() {
               <span className={styles.rowCount}>
                 {result.row_count?.toLocaleString()} row{result.row_count !== 1 ? 's' : ''}
               </span>
-              <button className={styles.textBtn} onClick={() => setShowPlan((v) => !v)}>
-                {showPlan ? 'Hide' : 'Show'} plan
-              </button>
+   
             </div>
           </div>
 
-          {showPlan && result.plan && (
-            <div className={styles.planWrap}>
-              <PlanViewer plan={result.plan} />
-              {result.sql && <SqlBlock sql={result.sql} />}
-            </div>
-          )}
 
           {hasData ? (
             <>
