@@ -3,9 +3,11 @@ import { useAppContext } from '../../context/AppContext';
 import styles from './Sidebar.module.css';
 
 const NAV = [
+  { id: "home", label: "Home", icon: HomeIcon },
   { id: 'query',    label: 'Query',    icon: SearchIcon },
   { id: 'schema',   label: 'Schema',   icon: TableIcon },
   { id: 'campaign', label: 'Campaigns', icon: MailIcon },
+  { id: 'about', label: 'About', icon: InfoIcon },
 ];
 
 export default function Sidebar() {
@@ -84,6 +86,43 @@ function MailIcon() {
     <polyline points="22,6 12,13 2,6"/>
   </svg>;
 }
+
+function HomeIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 10.5L12 3l9 7.5" />
+      <path d="M5 9.5V20h14V9.5" />
+      <path d="M9 20v-6h6v6" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 function ClockIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>

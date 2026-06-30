@@ -14,7 +14,7 @@ const initialState = {
   // Campaigns
   campaigns: {},
   // UI
-  activeTab: 'query',
+  activeTab: 'home',
 };
 
 function reducer(state, action) {

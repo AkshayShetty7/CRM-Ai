@@ -5,11 +5,15 @@ import QueryPanel from '../query/QueryPanel';
 import SchemaPanel from '../schema/SchemaPanel';
 import CampaignPanel from '../campaign/CampaignPanel';
 import styles from './Dashboard.module.css';
+import AboutPanel from '../about/AboutPanel';
+import HomePanel from "../home/HomePanel";
 
 const PANELS = {
+  home: HomePanel,
   query: QueryPanel,
   schema: SchemaPanel,
   campaign: CampaignPanel,
+  about: AboutPanel,
 };
 
 export default function Dashboard() {
