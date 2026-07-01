@@ -40,14 +40,14 @@ useEffect(() => {
     <div className={styles.dropdown}>
 
       <a
-        href="/datasets/customer_sales_data.xlsx"
+        href="/customer_sales_data.xlsx"
         download
       >
         Customer Sales Data
       </a>
 
       <a
-        href="/datasets/candidate_hr_data.xlsx"
+        href="/candidate_hr_data.xlsx"
         download
       >
         Candidate HR Data
