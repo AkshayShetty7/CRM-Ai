@@ -1,13 +1,62 @@
 import React from "react";
 import { useAppContext } from "../../context/AppContext";
 import styles from "./HomePanel.module.css";
+import { useState, useRef, useEffect } from "react";
 
 export default function HomePanel() {
   const { setTab } = useAppContext();
+  const [open, setOpen] = useState(false);
+const dropdownRef = useRef(null);
+
+useEffect(() => {
+  function handleClick(e) {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setOpen(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClick);
+
+  return () => document.removeEventListener("mousedown", handleClick);
+}, []);
 
   return (
     <div className={styles.page}>
       <div className={styles.background}></div>
+      <div className={styles.datasetArea} ref={dropdownRef}>
+
+  <div className={styles.blinkText}>
+    New here? Download a sample dataset to explore CRM AI Agent
+  </div>
+
+  <button
+    className={styles.datasetButton}
+    onClick={() => setOpen(!open)}
+  >
+    Download Dataset ▾
+  </button>
+
+  {open && (
+    <div className={styles.dropdown}>
+
+      <a
+        href="/datasets/customer_sales_data.xlsx"
+        download
+      >
+        Customer Sales Data
+      </a>
+
+      <a
+        href="/datasets/candidate_hr_data.xlsx"
+        download
+      >
+        Candidate HR Data
+      </a>
+
+    </div>
+  )}
+
+</div>
 
       <div className={styles.hero}>
 

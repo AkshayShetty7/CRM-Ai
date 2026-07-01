@@ -13,7 +13,7 @@ const DTYPE_COLORS = {
 };
 
 export default function SchemaPanel() {
-  const { state, setSchema } = useAppContext();
+  const { state, setSchema, setTab } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -127,6 +127,28 @@ export default function SchemaPanel() {
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
+
+      {schema && (
+  <div className={styles.successBanner}>
+    <div>
+      <div className={styles.successTitle}>
+        Dataset uploaded successfully
+      </div>
+
+      <div className={styles.successText}>
+        Your CRM dataset has been analyzed. You can now ask questions in
+        natural language.
+      </div>
+    </div>
+
+    <button
+      className={styles.queryBtn}
+      onClick={() => setTab("query")}
+    >
+      Start Querying →
+    </button>
+  </div>
+)}
 
       {!schema && !loading && (
         <div className={styles.empty}>

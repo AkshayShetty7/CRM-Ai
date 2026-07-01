@@ -95,6 +95,80 @@
   overflow-x: auto;
 }
 
+.successBanner{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:24px;
+
+    padding:20px 24px;
+
+    background:#f8fbff;
+
+    border:1px solid #dbeafe;
+
+    border-radius:16px;
+}
+
+.successTitle{
+    font-size:1rem;
+    font-weight:600;
+    color:var(--ink);
+}
+
+.successText{
+    margin-top:6px;
+    color:var(--ink-3);
+    font-size:.9rem;
+}
+
+.queryBtn{
+
+    border:none;
+
+    background:var(--ink);
+
+    color:white;
+
+    padding:12px 22px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.2s;
+}
+
+.queryBtn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 20px rgba(0,0,0,.12);
+}
+
+@media(max-width:700px){
+
+.successBanner{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:16px;
+
+}
+
+.queryBtn{
+
+width:100%;
+
+}
+
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
